@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/teamcurri/puff/pkg/config"
-	"github.com/teamcurri/puff/pkg/templating"
+	"github.com/teamcurri/puff/internal/config"
+	"github.com/teamcurri/puff/internal/templating"
 	"github.com/urfave/cli/v2"
 )
 

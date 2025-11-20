@@ -4,7 +4,7 @@
 build:
 	@echo "Building puff..."
 	@mkdir -p bin
-	@go build -o bin/puff ./cmd/puff
+	@go build -o bin/puff .
 	@echo "Build complete: bin/puff"
 
 # Run all tests
@@ -13,7 +13,7 @@ test: test-unit test-integration
 # Run unit tests
 test-unit:
 	@echo "Running unit tests..."
-	@go test -v ./pkg/...
+	@go test -v ./internal/...
 
 # Run integration tests
 test-integration: build
@@ -30,13 +30,13 @@ clean:
 # Install to $GOPATH/bin
 install:
 	@echo "Installing puff..."
-	@go install ./cmd/puff
+	@go install .
 	@echo "Install complete"
 
 # Run tests with coverage
 coverage:
 	@echo "Running tests with coverage..."
-	@go test -coverprofile=coverage.out ./pkg/...
+	@go test -coverprofile=coverage.out ./internal/...
 	@go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 

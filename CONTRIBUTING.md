@@ -23,7 +23,7 @@ Thank you for your interest in contributing to Puff! This document provides guid
 make build
 
 # Or manually
-go build -o bin/puff ./cmd/puff
+go build -o bin/puff .
 ```
 
 ### Running Tests
@@ -46,8 +46,8 @@ make coverage
 
 ```
 puff/
-├── cmd/puff/           # Main application entry point
-├── pkg/
+├── main.go             # Main application entry point
+├── internal/
 │   ├── config/         # Configuration loading and merging
 │   ├── templating/     # Variable template resolution
 │   ├── output/         # Output format generators

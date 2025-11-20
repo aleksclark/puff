@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/teamcurri/puff/pkg/keys"
+	"github.com/teamcurri/puff/internal/keys"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )

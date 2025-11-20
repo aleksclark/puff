@@ -45,9 +45,8 @@ All phases of the implementation have been completed successfully.
 
 ```
 gopuff/
-├── cmd/puff/              # Main application entry point
-│   └── main.go            # CLI setup with urfave/cli
-├── pkg/
+├── main.go                # Main application entry point
+├── internal/
 │   ├── config/            # Configuration loading and merging
 │   │   ├── config.go      # Core config types and loading logic
 │   │   └── config_test.go # Unit tests
@@ -83,7 +82,7 @@ gopuff/
 
 ### 1. Configuration Precedence System
 
-The 6-level merge precedence is implemented in `pkg/config/config.go`:
+The 6-level merge precedence is implemented in `internal/config/config.go`:
 
 1. `base/shared.yml` - Global configuration
 2. `base/{app}.yml` - Base app-specific
@@ -94,7 +93,7 @@ The 6-level merge precedence is implemented in `pkg/config/config.go`:
 
 ### 2. Template Resolution
 
-Implemented in `pkg/templating/resolver.go` with:
+Implemented in `internal/templating/resolver.go` with:
 - Recursive variable resolution
 - Circular dependency detection
 - Support for underscore-prefixed internal variables
@@ -102,7 +101,7 @@ Implemented in `pkg/templating/resolver.go` with:
 
 ### 3. Output Formats
 
-Implemented in `pkg/output/format.go`:
+Implemented in `internal/output/format.go`:
 - **.env**: Standard format with proper quoting and JSON encoding for nested values
 - **JSON**: Pretty-printed JSON output
 - **YAML**: Standard YAML format
@@ -136,9 +135,9 @@ Built with `urfave/cli/v2` for:
 
 All tests pass:
 ```
-✅ pkg/config - 3 tests
-✅ pkg/templating - 2 tests
-✅ pkg/output - 6 tests
+✅ internal/config - 3 tests
+✅ internal/templating - 2 tests
+✅ internal/output - 6 tests
 ✅ integration - 14 tests
 ```
 
@@ -229,7 +228,7 @@ make install
 ### Using Go Install
 
 ```bash
-go install github.com/teamcurri/puff/cmd/puff@latest
+go install github.com/teamcurri/puff@latest
 ```
 
 ## Documentation

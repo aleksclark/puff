@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/teamcurri/puff/pkg/commands"
+	"github.com/teamcurri/puff/internal/commands"
 	"github.com/urfave/cli/v2"
 )
 

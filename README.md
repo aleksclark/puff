@@ -19,7 +19,7 @@ Puff provides a DRY (Don't Repeat Yourself) way to manage configuration across m
 ### From Source
 
 ```bash
-go install github.com/teamcurri/puff/cmd/puff@latest
+go install github.com/teamcurri/puff@latest
 ```
 
 ### Manual Build
@@ -27,7 +27,7 @@ go install github.com/teamcurri/puff/cmd/puff@latest
 ```bash
 git clone https://github.com/teamcurri/puff
 cd puff
-go build -o puff ./cmd/puff
+go build -o puff .
 ```
 
 ## Quick Start
@@ -433,7 +433,7 @@ puff generate -a api -e prod -f env
 
 Run unit tests:
 ```bash
-go test ./pkg/...
+go test ./internal/...
 ```
 
 Run integration tests:
