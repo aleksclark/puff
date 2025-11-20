@@ -1,0 +1,320 @@
+Notice: Behaving like ASDF_GOLANG_MOD_VERSION_ENABLED=true
+        In the future this will have to be set to continue
+        reading from the go.mod and go.work files
+=== RUN   TestEdgeCase_InitWithoutAgeKeys
+    edge_cases_test.go:18: Expected stderr to contain "Required flag", but it didn't.
+        Stdout: NAME:
+           puff init - Initialize a new puff configuration directory with encryption
+        
+        USAGE:
+           puff init [command options]
+        
+        OPTIONS:
+           --dir value, -d value       Directory to initialize (defaults to current directory) (default: ".")
+           --age-keys value, -k value  Comma-separated list of age public keys for encryption (required)
+           --help, -h                  show help
+        [31mError: Required flag "age-keys" not set
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_InitWithoutAgeKeys (0.01s)
+=== RUN   TestEdgeCase_InitInNonEmptyDirectory
+--- PASS: TestEdgeCase_InitInNonEmptyDirectory (0.01s)
+=== RUN   TestEdgeCase_DoubleInit
+--- PASS: TestEdgeCase_DoubleInit (0.02s)
+=== RUN   TestEdgeCase_SetBeforeInit
+    edge_cases_test.go:68: Expected stderr to contain "no encryption keys found", but it didn't.
+        Stdout: [31mError: no encryption keys found in directory - run 'puff init' first to initialize with encryption keys
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_SetBeforeInit (0.01s)
+=== RUN   TestEdgeCase_GetBeforeInit
+--- PASS: TestEdgeCase_GetBeforeInit (0.01s)
+=== RUN   TestEdgeCase_GetNonExistentKey
+--- PASS: TestEdgeCase_GetNonExistentKey (0.03s)
+=== RUN   TestEdgeCase_SetEmptyValue
+--- PASS: TestEdgeCase_SetEmptyValue (0.03s)
+=== RUN   TestEdgeCase_SetSpecialCharacters
+--- PASS: TestEdgeCase_SetSpecialCharacters (0.22s)
+=== RUN   TestEdgeCase_SetVeryLongValue
+--- PASS: TestEdgeCase_SetVeryLongValue (0.03s)
+=== RUN   TestEdgeCase_SetMultilineValue
+--- PASS: TestEdgeCase_SetMultilineValue (0.03s)
+=== RUN   TestEdgeCase_SetJSONValue
+--- PASS: TestEdgeCase_SetJSONValue (0.03s)
+=== RUN   TestEdgeCase_OverwriteExistingKey
+--- PASS: TestEdgeCase_OverwriteExistingKey (0.05s)
+=== RUN   TestEdgeCase_GenerateNonExistentApp
+--- PASS: TestEdgeCase_GenerateNonExistentApp (0.03s)
+=== RUN   TestEdgeCase_GenerateWithoutRequiredK8sSecretName
+    edge_cases_test.go:261: Expected stderr to contain "secret-name is required", but it didn't.
+        Stdout: [31mError: --secret-name is required for k8s format
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_GenerateWithoutRequiredK8sSecretName (0.03s)
+=== RUN   TestEdgeCase_DecryptNonEncryptedFile
+--- PASS: TestEdgeCase_DecryptNonEncryptedFile (0.01s)
+=== RUN   TestEdgeCase_DecryptNonExistentFile
+--- PASS: TestEdgeCase_DecryptNonExistentFile (0.02s)
+=== RUN   TestEdgeCase_EncryptWithoutDecExtension
+    edge_cases_test.go:302: Expected stderr to contain ".dec", but it didn't.
+        Stdout: [31mError: file must be a decrypted file with .dec extension: plain.yml
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_EncryptWithoutDecExtension (0.02s)
+=== RUN   TestEdgeCase_EncryptNonExistentDecFile
+--- PASS: TestEdgeCase_EncryptNonExistentDecFile (0.02s)
+=== RUN   TestEdgeCase_AddInvalidAgeKey
+    edge_cases_test.go:327: Expected stderr to contain "invalid age key", but it didn't.
+        Stdout: [33mAdding key to encrypted files...
+        [0m[31mError: failed to add key: invalid age key: failed to parse input, unknown recipient type: "invalid-key-format"
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_AddInvalidAgeKey (0.02s)
+=== RUN   TestEdgeCase_AddDuplicateKey
+--- PASS: TestEdgeCase_AddDuplicateKey (0.03s)
+=== RUN   TestEdgeCase_RemoveNonExistentKey
+    edge_cases_test.go:360: age-keygen not available
+--- SKIP: TestEdgeCase_RemoveNonExistentKey (0.02s)
+=== RUN   TestEdgeCase_RemoveLastKey
+    edge_cases_test.go:390: Expected stderr to contain "last key", but it didn't.
+        Stdout: [33mRemoving key from encrypted files...
+        [0m[31mError: failed to remove key: failed to remove key from base/shared.yml: cannot remove the last key from file
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_RemoveLastKey (0.03s)
+=== RUN   TestEdgeCase_CircularTemplateReference
+    edge_cases_test.go:407: Expected stderr to contain "circular", but it didn't.
+        Stdout: [31mError: failed to resolve templates: circular dependency detected for variable: VAR_A
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_CircularTemplateReference (0.04s)
+=== RUN   TestEdgeCase_UndefinedTemplateVariable
+    edge_cases_test.go:425: Expected stderr to contain "undefined", but it didn't.
+        Stdout: [31mError: failed to resolve templates: undefined variable referenced: UNDEFINED_VAR (in URL)
+        [0m
+        Stderr: 
+--- FAIL: TestEdgeCase_UndefinedTemplateVariable (0.03s)
+=== RUN   TestEdgeCase_DeepNestedDirectories
+    edge_cases_test.go:455: Target override file in deep directory not created
+--- FAIL: TestEdgeCase_DeepNestedDirectories (0.03s)
+=== RUN   TestEdgeCase_SpecialCharactersInAppEnvNames
+--- PASS: TestEdgeCase_SpecialCharactersInAppEnvNames (0.05s)
+=== RUN   TestEdgeCase_ConcurrentModifications
+--- PASS: TestEdgeCase_ConcurrentModifications (0.05s)
+=== RUN   TestEdgeCase_MissingSOPSAgeKeyEnv
+--- PASS: TestEdgeCase_MissingSOPSAgeKeyEnv (0.03s)
+=== RUN   TestEdgeCase_InvalidYAMLInDecryptedFile
+    edge_cases_test.go:541: Should provide error message for invalid YAML
+--- FAIL: TestEdgeCase_InvalidYAMLInDecryptedFile (0.04s)
+=== RUN   TestFormat_EnvOutput
+--- PASS: TestFormat_EnvOutput (0.06s)
+=== RUN   TestFormat_EnvWithSpecialCharacters
+--- PASS: TestFormat_EnvWithSpecialCharacters (0.05s)
+=== RUN   TestFormat_JSONOutput
+--- PASS: TestFormat_JSONOutput (0.05s)
+=== RUN   TestFormat_JSONWithNestedStructures
+--- PASS: TestFormat_JSONWithNestedStructures (0.03s)
+=== RUN   TestFormat_YAMLOutput
+--- PASS: TestFormat_YAMLOutput (0.05s)
+=== RUN   TestFormat_YAMLWithMultilineValues
+--- PASS: TestFormat_YAMLWithMultilineValues (0.03s)
+=== RUN   TestFormat_K8sSecretOutput
+--- PASS: TestFormat_K8sSecretOutput (0.04s)
+=== RUN   TestFormat_K8sSecretWithBase64
+--- PASS: TestFormat_K8sSecretWithBase64 (0.04s)
+=== RUN   TestFormat_K8sSecretWithCustomNamespace
+    formats_test.go:375: K8s secret type should be Opaque
+--- FAIL: TestFormat_K8sSecretWithCustomNamespace (0.03s)
+=== RUN   TestFormat_OutputToFile
+--- PASS: TestFormat_OutputToFile (0.03s)
+=== RUN   TestFormat_EmptyConfiguration
+--- PASS: TestFormat_EmptyConfiguration (0.02s)
+=== RUN   TestFormat_LargeConfiguration
+--- PASS: TestFormat_LargeConfiguration (1.10s)
+=== RUN   TestFormat_InternalVariablesFiltering
+--- PASS: TestFormat_InternalVariablesFiltering (0.08s)
+=== RUN   TestFormat_TemplatesResolved
+--- PASS: TestFormat_TemplatesResolved (0.05s)
+=== RUN   TestFormat_InvalidFormatName
+    formats_test.go:548: Expected stderr to contain "unknown format", but it didn't.
+        Stdout: [31mError: unknown format: invalid-format (valid formats: env, json, yaml, k8s)
+        [0m
+        Stderr: 
+--- FAIL: TestFormat_InvalidFormatName (0.03s)
+=== RUN   TestFormat_ConsistencyAcrossFormats
+--- PASS: TestFormat_ConsistencyAcrossFormats (0.07s)
+=== RUN   TestIntegration
+=== RUN   TestIntegration/init
+    integration_test.go:44: init command failed: exit status 1
+        Output: NAME:
+           puff init - Initialize a new puff configuration directory with encryption
+        
+        USAGE:
+           puff init [command options]
+        
+        OPTIONS:
+           --dir value, -d value       Directory to initialize (defaults to current directory) (default: ".")
+           --age-keys value, -k value  Comma-separated list of age public keys for encryption (required)
+           --help, -h                  show help
+        [31mError: Required flag "age-keys" not set
+        [0m
+=== RUN   TestIntegration/set_global
+    integration_test.go:61: set command failed: exit status 1
+        Output: [31mError: no encryption keys found in directory - run 'puff init' first to initialize with encryption keys
+        [0m
+=== RUN   TestIntegration/set_app-specific
+    integration_test.go:76: set command failed: exit status 1
+        Output: [31mError: no encryption keys found in directory - run 'puff init' first to initialize with encryption keys
+        [0m
+=== RUN   TestIntegration/set_template
+    integration_test.go:89: set command failed: exit status 1
+        Output: [31mError: no encryption keys found in directory - run 'puff init' first to initialize with encryption keys
+        [0m
+=== RUN   TestIntegration/get_value
+    integration_test.go:98: get command failed: exit status 1
+        Output: [31mError: key not found: GLOBAL_VAR
+        [0m
+=== RUN   TestIntegration/get_templated_value
+    integration_test.go:110: get command failed: exit status 1
+        Output: [31mError: key not found: TEMPLATED
+        [0m
+=== RUN   TestIntegration/generate_env
+    integration_test.go:128: Output should contain GLOBAL_VAR
+    integration_test.go:131: Output should contain APP_VAR
+    integration_test.go:134: Output should contain TEMPLATED
+=== RUN   TestIntegration/generate_json
+=== RUN   TestIntegration/generate_yaml
+    integration_test.go:159: YAML output should contain 'GLOBAL_VAR:'
+=== RUN   TestIntegration/generate_k8s
+=== RUN   TestIntegration/internal_variables
+    integration_test.go:184: Failed to set internal variable: exit status 1
+=== RUN   TestIntegration/output_to_file
+    integration_test.go:232: Output file should contain variables
+--- FAIL: TestIntegration (0.22s)
+    --- FAIL: TestIntegration/init (0.01s)
+    --- FAIL: TestIntegration/set_global (0.01s)
+    --- FAIL: TestIntegration/set_app-specific (0.01s)
+    --- FAIL: TestIntegration/set_template (0.01s)
+    --- FAIL: TestIntegration/get_value (0.01s)
+    --- FAIL: TestIntegration/get_templated_value (0.01s)
+    --- FAIL: TestIntegration/generate_env (0.01s)
+    --- PASS: TestIntegration/generate_json (0.01s)
+    --- FAIL: TestIntegration/generate_yaml (0.01s)
+    --- PASS: TestIntegration/generate_k8s (0.01s)
+    --- FAIL: TestIntegration/internal_variables (0.01s)
+    --- FAIL: TestIntegration/output_to_file (0.01s)
+=== RUN   TestPrecedence
+=== RUN   TestPrecedence/level_1:_base_shared
+    integration_test.go:302: get command failed: exit status 1
+        Output: [31mError: key not found: OVERRIDE_TEST
+        [0m
+=== RUN   TestPrecedence/level_2:_base_app
+    integration_test.go:302: get command failed: exit status 1
+        Output: [31mError: key not found: OVERRIDE_TEST
+        [0m
+=== RUN   TestPrecedence/level_3:_env_shared
+    integration_test.go:302: get command failed: exit status 1
+        Output: [31mError: key not found: OVERRIDE_TEST
+        [0m
+=== RUN   TestPrecedence/level_4:_env_app
+    integration_test.go:302: get command failed: exit status 1
+        Output: [31mError: key not found: OVERRIDE_TEST
+        [0m
+=== RUN   TestPrecedence/level_5:_target_shared
+    integration_test.go:302: get command failed: exit status 1
+        Output: [31mError: key not found: OVERRIDE_TEST
+        [0m
+=== RUN   TestPrecedence/level_6:_target_app
+    integration_test.go:302: get command failed: exit status 1
+        Output: [31mError: key not found: OVERRIDE_TEST
+        [0m
+--- FAIL: TestPrecedence (0.25s)
+    --- FAIL: TestPrecedence/level_1:_base_shared (0.01s)
+    --- FAIL: TestPrecedence/level_2:_base_app (0.01s)
+    --- FAIL: TestPrecedence/level_3:_env_shared (0.01s)
+    --- FAIL: TestPrecedence/level_4:_env_app (0.01s)
+    --- FAIL: TestPrecedence/level_5:_target_shared (0.01s)
+    --- FAIL: TestPrecedence/level_6:_target_app (0.01s)
+=== RUN   TestPrecedence_SixLevelHierarchy
+--- PASS: TestPrecedence_SixLevelHierarchy (0.14s)
+=== RUN   TestPrecedence_BaseSharedIsLowest
+--- PASS: TestPrecedence_BaseSharedIsLowest (0.07s)
+=== RUN   TestPrecedence_TargetAppIsHighest
+--- PASS: TestPrecedence_TargetAppIsHighest (0.07s)
+=== RUN   TestPrecedence_DifferentKeysAtDifferentLevels
+--- PASS: TestPrecedence_DifferentKeysAtDifferentLevels (0.08s)
+=== RUN   TestPrecedence_EnvironmentIsolation
+--- PASS: TestPrecedence_EnvironmentIsolation (0.05s)
+=== RUN   TestPrecedence_AppIsolation
+--- PASS: TestPrecedence_AppIsolation (0.05s)
+=== RUN   TestPrecedence_TargetIsolation
+    precedence_test.go:317: Base config should have base-value
+    precedence_test.go:320: Base config should not have target values
+--- FAIL: TestPrecedence_TargetIsolation (0.07s)
+=== RUN   TestPrecedence_SharedAcrossApps
+--- PASS: TestPrecedence_SharedAcrossApps (0.07s)
+=== RUN   TestPrecedence_AppOverridesShared
+--- PASS: TestPrecedence_AppOverridesShared (0.05s)
+=== RUN   TestPrecedence_ComplexScenario
+    precedence_test.go:467: Should use DB_HOST from dev/shared
+    precedence_test.go:470: Should use API_PORT from dev/api
+--- FAIL: TestPrecedence_ComplexScenario (0.13s)
+=== RUN   TestPrecedence_PartialOverrides
+--- PASS: TestPrecedence_PartialOverrides (0.06s)
+=== RUN   TestSecurity_FilesAlwaysEncrypted
+    security_test.go:35: Expected file production/api.yml was not created
+    security_test.go:35: Expected file target-overrides/local/dev/api.yml was not created
+--- FAIL: TestSecurity_FilesAlwaysEncrypted (0.05s)
+=== RUN   TestSecurity_FilePermissions
+--- PASS: TestSecurity_FilePermissions (0.02s)
+=== RUN   TestSecurity_DecryptedFilesAreTemporary
+--- PASS: TestSecurity_DecryptedFilesAreTemporary (0.04s)
+=== RUN   TestSecurity_KeyIsolation
+    security_test.go:163: age-keygen not available
+--- SKIP: TestSecurity_KeyIsolation (0.03s)
+=== RUN   TestSecurity_KeyRotation
+    security_test.go:218: age-keygen not available
+--- SKIP: TestSecurity_KeyRotation (0.04s)
+=== RUN   TestSecurity_NoPlaintextInGeneratedK8sSecrets
+--- PASS: TestSecurity_NoPlaintextInGeneratedK8sSecrets (0.05s)
+=== RUN   TestSecurity_EnvironmentVariableLeakage
+--- PASS: TestSecurity_EnvironmentVariableLeakage (0.08s)
+=== RUN   TestSecurity_SOPSMetadataNotInGeneratedOutput
+--- PASS: TestSecurity_SOPSMetadataNotInGeneratedOutput (0.03s)
+=== RUN   TestSecurity_KeyCommentsDoNotContainSecrets
+    security_test.go:383: age-keygen not available
+--- SKIP: TestSecurity_KeyCommentsDoNotContainSecrets (0.02s)
+=== RUN   TestSecurity_CannotReadWithoutCorrectKey
+    security_test.go:437: age-keygen not available
+--- SKIP: TestSecurity_CannotReadWithoutCorrectKey (0.03s)
+=== RUN   TestWorkflow_BasicInitAndUsage
+--- PASS: TestWorkflow_BasicInitAndUsage (0.06s)
+=== RUN   TestWorkflow_MultiAppMultiEnv
+--- PASS: TestWorkflow_MultiAppMultiEnv (0.13s)
+=== RUN   TestWorkflow_TemplateVariableChains
+--- PASS: TestWorkflow_TemplateVariableChains (0.07s)
+=== RUN   TestWorkflow_TemplateWithInternalVariables
+--- PASS: TestWorkflow_TemplateWithInternalVariables (0.06s)
+=== RUN   TestWorkflow_TargetOverrides
+    workflows_test.go:245: Local target override file not created
+--- FAIL: TestWorkflow_TargetOverrides (0.05s)
+=== RUN   TestWorkflow_BulkEditDecryptEncrypt
+--- PASS: TestWorkflow_BulkEditDecryptEncrypt (0.09s)
+=== RUN   TestWorkflow_KeyManagement
+    workflows_test.go:354: age-keygen not available, skipping key management test
+--- SKIP: TestWorkflow_KeyManagement (0.03s)
+=== RUN   TestWorkflow_GenerateMultipleFormats
+--- PASS: TestWorkflow_GenerateMultipleFormats (0.09s)
+=== RUN   TestWorkflow_ConfigurationPrecedence
+    workflows_test.go:527: Level 4 (env/app) not applied correctly. Output: {
+          "LOG_LEVEL": "trace",
+          "MAX_CONNECTIONS": "50"
+        }
+    workflows_test.go:530: Level 1 (base/shared) not applied for MAX_CONNECTIONS. Output: {
+          "LOG_LEVEL": "trace",
+          "MAX_CONNECTIONS": "50"
+        }
+--- FAIL: TestWorkflow_ConfigurationPrecedence (0.09s)
+FAIL
+FAIL	github.com/teamcurri/puff/test	5.030s
+FAIL

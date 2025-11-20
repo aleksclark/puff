@@ -1,0 +1,311 @@
+package test
+
+import (
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+var puffBinary string
+
+func init() {
+	// Get absolute path to the binary
+	wd, _ := os.Getwd()
+	puffBinary = filepath.Join(filepath.Dir(wd), "bin", "puff")
+}
+
+func TestIntegration(t *testing.T) {
+	// Ensure binary is built
+	cmdDir := filepath.Join(filepath.Dir(puffBinary), "..", "cmd", "puff")
+	buildCmd := exec.Command("go", "build", "-o", puffBinary, cmdDir)
+	if err := buildCmd.Run(); err != nil {
+		t.Fatalf("Failed to build puff binary: %v", err)
+	}
+
+	// Create a temporary test directory
+	tmpDir, err := os.MkdirTemp("", "puff-integration-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Change to temp directory for tests
+	originalDir, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(originalDir)
+
+	// Test init command
+	t.Run("init", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "init")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("init command failed: %v\nOutput: %s", err, output)
+		}
+
+		// Check that files were created
+		if _, err := os.Stat("base/shared.yml"); os.IsNotExist(err) {
+			t.Error("base/shared.yml was not created")
+		}
+		if _, err := os.Stat(".sops.yaml"); os.IsNotExist(err) {
+			t.Error(".sops.yaml was not created")
+		}
+	})
+
+	// Test set command
+	t.Run("set global", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "set", "-k", "GLOBAL_VAR", "-v", "global_value")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("set command failed: %v\nOutput: %s", err, output)
+		}
+
+		if !strings.Contains(string(output), "base/shared.yml") {
+			t.Error("Expected output to mention base/shared.yml")
+		}
+	})
+
+	// Create dev environment
+	os.MkdirAll("dev", 0755)
+
+	t.Run("set app-specific", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "set", "-k", "APP_VAR", "-v", "app_value", "-a", "frontend", "-e", "dev")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("set command failed: %v\nOutput: %s", err, output)
+		}
+
+		if !strings.Contains(string(output), "dev/frontend.yml") {
+			t.Error("Expected output to mention dev/frontend.yml")
+		}
+	})
+
+	// Test templating
+	t.Run("set template", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "set", "-k", "TEMPLATED", "-v", "${GLOBAL_VAR}_extended", "-e", "dev")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("set command failed: %v\nOutput: %s", err, output)
+		}
+	})
+
+	// Test get command
+	t.Run("get value", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "get", "-k", "GLOBAL_VAR")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("get command failed: %v\nOutput: %s", err, output)
+		}
+
+		if !strings.Contains(string(output), "global_value") {
+			t.Errorf("Expected output to contain 'global_value', got: %s", output)
+		}
+	})
+
+	t.Run("get templated value", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "get", "-k", "TEMPLATED", "-e", "dev")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("get command failed: %v\nOutput: %s", err, output)
+		}
+
+		if !strings.Contains(string(output), "global_value_extended") {
+			t.Errorf("Expected resolved template value, got: %s", output)
+		}
+	})
+
+	// Test generate command with different formats
+	t.Run("generate env", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "generate", "-a", "frontend", "-e", "dev", "-f", "env")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("generate command failed: %v\nOutput: %s", err, output)
+		}
+
+		outputStr := string(output)
+		if !strings.Contains(outputStr, "GLOBAL_VAR") {
+			t.Error("Output should contain GLOBAL_VAR")
+		}
+		if !strings.Contains(outputStr, "APP_VAR") {
+			t.Error("Output should contain APP_VAR")
+		}
+		if !strings.Contains(outputStr, "TEMPLATED") {
+			t.Error("Output should contain TEMPLATED")
+		}
+	})
+
+	t.Run("generate json", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "generate", "-a", "frontend", "-e", "dev", "-f", "json")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("generate command failed: %v\nOutput: %s", err, output)
+		}
+
+		if !strings.Contains(string(output), "{") || !strings.Contains(string(output), "}") {
+			t.Error("JSON output should contain curly braces")
+		}
+	})
+
+	t.Run("generate yaml", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "generate", "-a", "frontend", "-e", "dev", "-f", "yaml")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("generate command failed: %v\nOutput: %s", err, output)
+		}
+
+		outputStr := string(output)
+		if !strings.Contains(outputStr, "GLOBAL_VAR:") {
+			t.Error("YAML output should contain 'GLOBAL_VAR:'")
+		}
+	})
+
+	t.Run("generate k8s", func(t *testing.T) {
+		cmd := exec.Command(puffBinary, "generate", "-a", "frontend", "-e", "dev", "-f", "k8s", "--secret-name", "test-secret")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("generate command failed: %v\nOutput: %s", err, output)
+		}
+
+		outputStr := string(output)
+		if !strings.Contains(outputStr, "kind: Secret") {
+			t.Error("K8s output should contain 'kind: Secret'")
+		}
+		if !strings.Contains(outputStr, "test-secret") {
+			t.Error("K8s output should contain secret name")
+		}
+	})
+
+	// Test underscore-prefixed internal variables
+	t.Run("internal variables", func(t *testing.T) {
+		// Set an internal variable
+		cmd := exec.Command(puffBinary, "set", "-k", "_INTERNAL", "-v", "secret")
+		if _, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("Failed to set internal variable: %v", err)
+		}
+
+		// Set a variable that uses the internal one
+		cmd = exec.Command(puffBinary, "set", "-k", "USES_INTERNAL", "-v", "${_INTERNAL}_public", "-e", "dev")
+		if _, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("Failed to set variable using internal: %v", err)
+		}
+
+		// Generate and verify internal var is not exported
+		cmd = exec.Command(puffBinary, "generate", "-a", "frontend", "-e", "dev", "-f", "env")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("generate command failed: %v", err)
+		}
+
+		outputStr := string(output)
+		// Check that _INTERNAL is not a standalone variable (not checking for substring in other var names)
+		lines := strings.Split(outputStr, "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(line, "_INTERNAL=") {
+				t.Errorf("Internal variable should not be exported as standalone variable. Output:\n%s", outputStr)
+				break
+			}
+		}
+		if !strings.Contains(outputStr, "USES_INTERNAL=") {
+			t.Errorf("Variable using internal should be exported. Output:\n%s", outputStr)
+		}
+		if !strings.Contains(outputStr, "secret_public") {
+			t.Errorf("Internal variable should be resolved in output. Output:\n%s", outputStr)
+		}
+	})
+
+	// Test output to file
+	t.Run("output to file", func(t *testing.T) {
+		outputFile := "test-output.env"
+		cmd := exec.Command(puffBinary, "generate", "-a", "frontend", "-e", "dev", "-f", "env", "-o", outputFile)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("generate to file failed: %v\nOutput: %s", err, output)
+		}
+
+		if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+			t.Error("Output file was not created")
+		}
+
+		content, _ := os.ReadFile(outputFile)
+		if !strings.Contains(string(content), "GLOBAL_VAR") {
+			t.Error("Output file should contain variables")
+		}
+	})
+}
+
+// TestPrecedence verifies the 6-level merge precedence works correctly
+func TestPrecedence(t *testing.T) {
+	// Ensure binary is built
+	cmdDir := filepath.Join(filepath.Dir(puffBinary), "..", "cmd", "puff")
+	buildCmd := exec.Command("go", "build", "-o", puffBinary, cmdDir)
+	if err := buildCmd.Run(); err != nil {
+		t.Fatalf("Failed to build puff binary: %v", err)
+	}
+
+	tmpDir, err := os.MkdirTemp("", "puff-precedence-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	originalDir, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(originalDir)
+
+	// Initialize
+	exec.Command(puffBinary, "init").Run()
+
+	// Setup the 6 levels with the same key having different values
+	testKey := "OVERRIDE_TEST"
+
+	// 1. base/shared.yml
+	exec.Command(puffBinary, "set", "-k", testKey, "-v", "base_shared").Run()
+
+	// 2. base/api.yml
+	exec.Command(puffBinary, "set", "-k", testKey, "-v", "base_api", "-a", "api").Run()
+
+	// 3. dev/shared.yml
+	os.MkdirAll("dev", 0755)
+	exec.Command(puffBinary, "set", "-k", testKey, "-v", "dev_shared", "-e", "dev").Run()
+
+	// 4. dev/api.yml
+	exec.Command(puffBinary, "set", "-k", testKey, "-v", "dev_api", "-a", "api", "-e", "dev").Run()
+
+	// 5. target-overrides/docker/shared.yml
+	os.MkdirAll("target-overrides/docker", 0755)
+	exec.Command(puffBinary, "set", "-k", testKey, "-v", "target_shared", "-t", "docker").Run()
+
+	// 6. target-overrides/docker/api.yml
+	exec.Command(puffBinary, "set", "-k", testKey, "-v", "target_api", "-a", "api", "-t", "docker").Run()
+
+	// Test each level of precedence
+	tests := []struct {
+		name     string
+		args     []string
+		expected string
+	}{
+		{"level 1: base shared", []string{"-k", testKey}, "base_shared"},
+		{"level 2: base app", []string{"-k", testKey, "-a", "api"}, "base_api"},
+		{"level 3: env shared", []string{"-k", testKey, "-e", "dev"}, "dev_shared"},
+		{"level 4: env app", []string{"-k", testKey, "-a", "api", "-e", "dev"}, "dev_api"},
+		{"level 5: target shared", []string{"-k", testKey, "-e", "dev", "-t", "docker"}, "target_shared"},
+		{"level 6: target app", []string{"-k", testKey, "-a", "api", "-e", "dev", "-t", "docker"}, "target_api"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			args := append([]string{"get"}, tt.args...)
+			cmd := exec.Command(puffBinary, args...)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Fatalf("get command failed: %v\nOutput: %s", err, output)
+			}
+
+			outputStr := strings.TrimSpace(string(output))
+			if outputStr != tt.expected {
+				t.Errorf("Expected %s, got %s", tt.expected, outputStr)
+			}
+		})
+	}
+}
