@@ -39,11 +39,11 @@ jobs:
     - name: Build binary for tests
       run: |
         mkdir -p bin
-        go build -o bin/puff ./cmd/puff
+        go build -o bin/puff .
 
     - name: Run tests
       run: |
-        go test -v ./pkg/...
+        go test -v ./internal/...
         go test -v ./test/...
 
     - name: Generate CALVER version
@@ -120,7 +120,7 @@ jobs:
           GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build \
             -ldflags "-s -w -X main.version=${VERSION}" \
             -o "dist/${OUTPUT_NAME}" \
-            ./cmd/puff
+            .
 
           # Create tarball
           tar -czf "dist/${OUTPUT_NAME}.tar.gz" -C dist "${OUTPUT_NAME}"
