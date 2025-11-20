@@ -25,6 +25,11 @@ jobs:
     - name: Download dependencies
       run: go mod download
 
+    - name: Install age
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y age
+
     - name: Run go vet
       run: go vet ./...
 
