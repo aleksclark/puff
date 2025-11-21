@@ -15,15 +15,13 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Create Release
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -36,15 +34,36 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y age
 
-    - name: Build binary for tests
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Run unit tests
+      run: go test -v -race ./internal/...
+
+    - name: Build binary
       run: |
         mkdir -p bin
         go build -o bin/puff .
 
-    - name: Run tests
-      run: |
-        go test -v ./internal/...
-        go test -v ./test/...
+    - name: Run integration tests
+      run: go test -v -race ./test/...
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.3'
+        cache: true
 
     - name: Generate CALVER version
       id: calver
