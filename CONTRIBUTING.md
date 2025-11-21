@@ -149,10 +149,10 @@ subject of an email and the rest of the text as the body.
 
 ### High Priority
 
-- **Full SOPS Integration**: Complete implementation of key management commands
 - **Performance Optimization**: Improve config loading and merging performance
 - **Error Messages**: Better error messages with suggestions
 - **CLI Improvements**: Better help text and examples
+- **Additional encryption backends**: Support for AWS KMS, GCP KMS, Vault
 
 ### Features to Consider
 

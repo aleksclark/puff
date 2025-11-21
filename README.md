@@ -11,7 +11,7 @@ Puff provides a DRY (Don't Repeat Yourself) way to manage configuration across m
 - **Template variables**: Reference other variables with `${VAR}` syntax
 - **Internal variables**: Use `_` prefix for variables that shouldn't be exported
 - **Multiple output formats**: .env, JSON, YAML, and Kubernetes secrets
-- **SOPS integration**: Secure encryption with age keys (support in progress)
+- **SOPS integration**: Secure encryption with age keys - fully integrated
 - **Single binary**: No dependencies to install
 
 ## Installation
@@ -34,14 +34,30 @@ go build -o puff .
 
 ### 1. Initialize a new configuration directory
 
+First, generate an age key pair for encryption:
+```bash
+# Install age if you haven't already
+# Ubuntu/Debian: sudo apt-get install age
+# macOS: brew install age
+
+# Generate a key pair
+age-keygen -o key.txt
+```
+
+Then initialize puff with your age public key:
 ```bash
 mkdir my-config && cd my-config
-puff init
+puff init --age-keys "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
 ```
 
 This creates:
-- `base/shared.yml` - Global configuration
-- `.sops.yaml` - SOPS configuration (for encryption)
+- `base/shared.yml` - Global configuration (encrypted)
+- `.sops.yaml` - SOPS configuration with your age key
+
+**Important**: Save your private key (`key.txt`) securely. Set the environment variable to decrypt files:
+```bash
+export SOPS_AGE_KEY_FILE=~/key.txt
+```
 
 ### 2. Add configuration values
 
@@ -154,14 +170,24 @@ Output only includes `PUBLIC_URL` and `ADMIN_URL`, not `_BASE_URL`.
 
 ### `init`
 
-Initialize a new puff configuration directory.
+Initialize a new puff configuration directory with encryption.
 
 ```bash
-puff init [--dir DIR]
+puff init --age-keys "age1..." [OPTIONS]
 ```
 
 Options:
+- `-k, --age-keys`: Age public keys for encryption (required, comma-separated)
 - `-d, --dir`: Directory to initialize (default: current directory)
+
+Example:
+```bash
+# Single key
+puff init --age-keys "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
+
+# Multiple keys
+puff init --age-keys "age1...,age1..."
+```
 
 ### `set`
 
@@ -240,31 +266,97 @@ puff generate -a api -e prod -f k8s --secret-name api-secret --base64
 
 Manage encryption keys (SOPS integration).
 
-**Note**: Key management commands are placeholders. Full SOPS integration is in progress. For now, manage keys manually in `.sops.yaml` and use SOPS CLI directly.
-
 #### `keys list`
 
-List all encryption keys.
+List all encryption keys used in the configuration.
 
 ```bash
 puff keys list [--root DIR]
 ```
 
+Shows all age keys, the environments they're used in, and any associated comments.
+
 #### `keys add`
 
-Add an age encryption key (placeholder).
+Add an age encryption key to all files (or specific environment).
 
 ```bash
 puff keys add -k KEY [OPTIONS]
 ```
 
+Options:
+- `-k, --key`: Age public key to add (required)
+- `-c, --comment`: Comment for the key (e.g., "Bob's laptop")
+- `-e, --env`: Only add to specific environment
+- `-r, --root`: Root directory for config files (default: current directory)
+
+Examples:
+```bash
+# Add key to all files
+puff keys add -k "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p" -c "Alice's laptop"
+
+# Add key only to prod environment
+puff keys add -k "age1..." -e prod -c "Production team key"
+```
+
+The key is added to `.sops.yaml` and all encrypted files are re-encrypted with the new key included.
+
 #### `keys rm`
 
-Remove an age encryption key (placeholder).
+Remove an age encryption key from all files (or specific environment).
 
 ```bash
 puff keys rm -k KEY [OPTIONS]
 ```
+
+Options:
+- `-k, --key`: Age public key to remove (required)
+- `-e, --env`: Only remove from specific environment
+- `-r, --root`: Root directory for config files (default: current directory)
+
+Examples:
+```bash
+# Remove key from all files
+puff keys rm -k "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
+
+# Remove key only from dev environment
+puff keys rm -k "age1..." -e dev
+```
+
+**Note**: You cannot remove the last key from a file. At least one key must remain for encryption.
+
+### `decrypt`
+
+Decrypt a file for bulk editing.
+
+```bash
+puff decrypt -f FILE
+```
+
+Options:
+- `-f, --file`: File to decrypt (required)
+
+Creates a `.dec` version of the file that you can edit in plain text:
+```bash
+puff decrypt -f base/shared.yml
+# Creates base/shared.dec.yml
+vim base/shared.dec.yml
+puff encrypt -f base/shared.dec.yml
+# Re-encrypts and removes .dec file
+```
+
+### `encrypt`
+
+Re-encrypt a decrypted file.
+
+```bash
+puff encrypt -f FILE
+```
+
+Options:
+- `-f, --file`: Decrypted file to encrypt (must have .dec extension)
+
+Re-encrypts the file using the keys from the original file (or `.sops.yaml`), then removes the `.dec` file for security.
 
 ## Output Formats
 
@@ -366,7 +458,13 @@ Target overrides should only contain values that truly differ between deployment
 
 ### 4. Keep Secrets Encrypted
 
-Use SOPS to encrypt sensitive configuration files. Never commit unencrypted secrets to git.
+All configuration files are automatically encrypted by puff using SOPS and age. Never commit unencrypted secrets or `.dec` files to git.
+
+**Key Management Tips:**
+- Store private keys securely (password manager, encrypted disk)
+- Use separate keys for different environments when possible
+- Rotate keys periodically using `puff keys add` and `puff keys rm`
+- Add team members' keys with `puff keys add -c "Team member name"`
 
 ### 5. Document Your Variables
 

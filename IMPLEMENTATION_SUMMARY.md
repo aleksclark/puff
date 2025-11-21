@@ -30,16 +30,21 @@ All phases of the implementation have been completed successfully.
    - Kubernetes secrets (plain text and base64)
 
 4. **CLI Commands**
-   - `init` - Initialize configuration directory
-   - `set` - Set configuration values
+   - `init` - Initialize configuration directory with age encryption
+   - `set` - Set configuration values (automatically encrypted)
    - `get` - Get configuration values (with template resolution)
    - `generate` - Generate full configuration in various formats
-   - `keys` - Key management commands (list, add, rm)
+   - `keys` - Full key management (list, add, rm with environment filtering)
+   - `decrypt` - Decrypt files for bulk editing
+   - `encrypt` - Re-encrypt edited files
 
-5. **SOPS Integration Foundation**
-   - Key listing functionality
-   - Placeholder implementations for add/rm (documented for future enhancement)
-   - Ready for full SOPS integration
+5. **Full SOPS Integration**
+   - Complete age encryption/decryption support
+   - Automated file encryption on `set` operations
+   - Key management: add/remove keys from encrypted files
+   - Environment-specific key filtering
+   - Key comments and metadata in `.sops.yaml`
+   - Secure decrypt/encrypt workflow for bulk edits
 
 ## Project Structure
 
@@ -57,13 +62,16 @@ gopuff/
 │   │   ├── format.go      # .env, JSON, YAML, K8s formats
 │   │   └── format_test.go # Unit tests
 │   ├── keys/              # SOPS key management
-│   │   └── sops.go        # Key listing and management placeholders
+│   │   ├── sops.go        # Full encryption/decryption, key add/remove
+│   │   └── sops_config.go # .sops.yaml management
 │   └── commands/          # CLI command implementations
-│       ├── init.go        # Init command
-│       ├── set.go         # Set command
+│       ├── init.go        # Init command with encryption
+│       ├── set.go         # Set command (auto-encrypts)
 │       ├── get.go         # Get command
 │       ├── generate.go    # Generate command
-│       └── keys.go        # Keys commands
+│       ├── keys.go        # Keys management commands
+│       ├── decrypt.go     # Decrypt command
+│       └── encrypt.go     # Encrypt command
 ├── test/
 │   └── integration_test.go # End-to-end integration tests
 ├── examples/
@@ -180,15 +188,18 @@ puff generate -a api -e prod -f k8s --secret-name api-secret
 ✅ Full test coverage (unit + integration)
 ✅ Documentation and examples
 ✅ Build automation with Makefile
+✅ Full SOPS integration with age encryption
+✅ Complete key management (add/remove/list)
+✅ Automated encryption on all operations
 
 ## Future Enhancements
 
 The following features are identified for future development:
 
-1. **Full SOPS Integration**
-   - Complete implementation of `keys add` and `keys rm` commands
-   - Automatic encryption/decryption of config files
-   - Integration with age keys for encryption
+1. **Additional Encryption Backends**
+   - AWS KMS support
+   - GCP KMS support
+   - HashiCorp Vault integration
 
 2. **Additional Features**
    - Configuration validation and schema support
@@ -197,14 +208,15 @@ The following features are identified for future development:
    - Watch mode for live reloading
    - Backup and restore functionality
 
-3. **Performance**
-   - Caching for large configuration sets
-   - Parallel file loading
-
-4. **Developer Experience**
+3. **Developer Experience**
    - Better error messages with suggestions
    - More examples for different use cases
    - Interactive mode for setting values
+
+4. **Performance**
+   - Caching for large configuration sets
+   - Parallel file loading
+
 
 ## Build and Installation
 
